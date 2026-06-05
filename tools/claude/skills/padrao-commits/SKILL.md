@@ -7,7 +7,7 @@ description: Use when creating git commits - enforces Conventional Commits forma
 
 ## Regra Principal
 
-Seguir o padrão **Conventional Commits** em todos os commits. Nunca incluir referências ao Claude, IA ou ferramentas de geração.
+Seguir o padrão **Conventional Commits** em todos os commits, com mensagens escritas em **português do Brasil (PT-BR)**. Nunca incluir referências ao Claude, IA ou ferramentas de geração.
 
 ## Formato
 
