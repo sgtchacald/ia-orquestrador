@@ -1,0 +1,31 @@
+# Segredos — nunca versionar
+*.key
+*.pem
+*.p12
+.env
+.env.*
+credentials.json
+*credentials*
+*secrets*
+*token*
+*.secret
+
+# Dados internos do Claude (gerados localmente, não são configuração)
+tools/claude/cache/
+tools/claude/history.jsonl
+tools/claude/sessions/
+tools/claude/shell-snapshots/
+tools/claude/backups/
+tools/claude/file-history/
+tools/claude/tasks/
+tools/claude/plans/
+tools/claude/.credentials.json
+tools/claude/.last-*
+tools/claude/statsig/
+tools/claude/plugins/cache/
+tools/claude/plugins/installed_plugins.json
+tools/claude/plugins/known_marketplaces.json
+
+# OS
+.DS_Store
+Thumbs.db
