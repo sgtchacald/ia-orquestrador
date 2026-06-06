@@ -26,6 +26,10 @@ tools/claude/plugins/cache/
 tools/claude/plugins/installed_plugins.json
 tools/claude/plugins/known_marketplaces.json
 
+# Knowledge base — conteúdo interno dos projetos (dados locais, não versionados)
+shared/knowledge/projetos/*/
+!shared/knowledge/projetos/*/.gitkeep
+
 # OS
 .DS_Store
 Thumbs.db
