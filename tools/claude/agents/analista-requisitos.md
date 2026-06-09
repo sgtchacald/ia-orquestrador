@@ -169,15 +169,15 @@ Quando o projeto possuir documentação de referência em `shared/knowledge/proj
 4.  Casos de Uso                       ← placeholder diagrama UML + lista CUs
 5.  Localização / Critérios de Aceitação
     Cenários BDD: 5.0, 5.1... (Dado/E/Quando/Então)
-6.  Protótipos de Interface
-    QUADRO_DESCRITIVO (ID | NOME | PROPRIEDADES | OBSERVAÇÕES)
-    6.1 Suggestion Boxes
-    6.2 Regras de Tela
-7.  Banco de Dados
+6.  Banco de Dados                         ← antes do protótipo (analista define o banco primeiro)
     QUADRO_DESCRITIVO + DDL
-    7.1 Diagrama ER
-    7.2 Auditoria de Tabelas
-    7.3 Procedures / Views / Triggers / Functions
+    6.1 Diagrama ER
+    6.2 Auditoria de Tabelas
+    6.3 Procedures / Views / Triggers / Functions
+7.  Protótipos de Interface
+    QUADRO_DESCRITIVO (ID | NOME | PROPRIEDADES | OBSERVAÇÕES)
+    7.1 Suggestion Boxes
+    7.2 Regras de Tela
 8.  Endpoints
     Tabela: CÓDIGO | HTTP | PERMISSÃO | PATH | FINALIZADO?
 9.  Regras de Negócio
@@ -257,31 +257,31 @@ Ao construir um documento de análise **seção por seção**, seguir este proto
 
 ### Ciclo por seção
 
-1. **Gerar a seção** — escrever o conteúdo da seção atual no documento `.docx` via python-docx, salvar em `/tmp/` e copiar para o destino real no NAS (path SMB ou montagem local)
-2. **Abrir para revisão** — abrir o arquivo no LibreOffice (`soffice arquivo.docx &`) para o usuário revisar
-3. **Aguardar confirmação** — esperar o usuário revisar, editar o que desejar e sinalizar que está ok
-4. **Ler e analisar o documento atual** — antes de gerar a próxima seção, **sempre** ler o arquivo `.docx` atual do disco com python-docx e executar a **etapa de revisão obrigatória** (ver abaixo)
-5. **Adicionar a próxima seção** — inserir apenas a nova seção, sem modificar o restante do documento
-6. **Repetir** até o documento estar completo
+1. **Gerar a seção** — escrever o conteúdo da seção atual via python-docx, salvar em `/tmp/` e copiar para o NAS. **Nunca abrir o LibreOffice** — abrir o LibreOffice cria um arquivo de lock (`.~lock.filename#`) que impede o usuário de editar.
+2. **Avisar que está pronto** — informar ao usuário que a seção foi salva e está disponível para revisão no caminho do NAS. Exemplo: _"Seção X salva. Abra o documento, revise, edite o que desejar e me avise quando terminar."_
+3. **Aguardar sinalização** — esperar o usuário sinalizar que terminou a revisão (ex: "ok", "pode continuar", "pronto").
+4. **Ler e analisar o documento** — ao receber a sinalização, **sempre** copiar o arquivo do NAS para `/tmp/`, abrir com python-docx e executar a **etapa de revisão obrigatória** (ver abaixo). **Nunca pular esta etapa.**
+5. **Adicionar a próxima seção** — somente após a revisão, inserir a nova seção sem modificar o restante.
+6. **Repetir** até o documento estar completo.
 
-### Etapa de revisão obrigatória (entre seções)
+### Etapa de revisão obrigatória (ao receber sinalização do usuário)
 
-Após ler o documento e **antes de escrever qualquer código**, o agente deve:
+Após copiar e ler o documento do NAS, **antes de escrever qualquer código**, o agente deve:
 
-1. **Comparar** o conteúdo lido com o que foi gerado na sessão anterior
-2. **Identificar e reportar** explicitamente ao usuário o que foi alterado, adicionado ou removido. Exemplo de formato:
+1. **Comparar** o conteúdo lido com o que foi gerado anteriormente.
+2. **Identificar e reportar** explicitamente o que foi alterado, adicionado ou removido. Formato obrigatório:
    > "Li o documento. Identifiquei as seguintes alterações suas:
-   > - Seção 1: adicionado o item '• Usuário como produto...'
-   > - Seção 2, Obs. 3: texto ajustado para '...'
-   > Tudo coerente com o escopo do módulo. ✓ Prosseguindo para a seção X."
+   > - Seção X: adicionado o item '...'
+   > - Seção Y: texto ajustado para '...'
+   > Tudo coerente. ✓ Posso prosseguir para o item N?"
 
-3. **Avaliar a coerência** das edições do usuário em relação ao escopo e requisitos já documentados:
-   - Se algo parecer inconsistente, ambíguo ou em conflito com outro item, **levantar uma pergunta** antes de prosseguir. Nunca ignorar silenciosamente.
-   - Se estiver tudo coerente, **sinalizar explicitamente** que está ok e que vai prosseguir.
+3. **Avaliar coerência** das edições em relação ao escopo e requisitos já documentados:
+   - Se algo parecer inconsistente ou em conflito: **levantar a dúvida** antes de prosseguir.
+   - Se estiver tudo ok: **perguntar explicitamente** se pode prosseguir para o próximo item.
 
-4. **Só então** gerar o código python-docx da próxima seção.
+4. **Aguardar confirmação do usuário** antes de gerar qualquer código da próxima seção.
 
-**Regra:** nunca pular a etapa de revisão mesmo que o usuário diga "pode seguir". Leia, compare e reporte sempre — pode ser breve, mas deve acontecer.
+**Regra absoluta:** nunca pular a etapa de revisão mesmo que o usuário diga "pode seguir". Sempre leia o documento atualizado do NAS, compare, reporte — pode ser breve, mas deve acontecer toda vez.
 
 ### Regra crítica: nunca regererar o documento inteiro
 
@@ -400,6 +400,19 @@ subprocess.run(['cp', '/tmp/nome-do-doc.docx', DEST_PATH])
 
 ---
 
+## Diretriz de Execução Autônoma
+
+Ao receber uma solicitação para criar ou atualizar qualquer documento de análise:
+
+1. **Perguntar uma única vez** — antes de iniciar qualquer escrita, perguntar ao usuário: _"Posso iniciar a [criação / atualização] do documento `[nome]`?"_
+2. **Após confirmação — trabalhar sem interrupções** — executar todas as seções e itens solicitados em sequência, sem parar para pedir aprovação intermediária entre seções.
+3. **Não fazer perguntas durante a geração**, exceto se houver uma ambiguidade **crítica e incontornável** (informação essencial ausente que não pode ser inferida do contexto). Nesse caso, levantar a dúvida de forma objetiva e aguardar resposta antes de prosseguir apenas naquele ponto.
+4. **Ao concluir** — informar ao usuário que o documento está completo e disponível no caminho do NAS, listando as seções geradas.
+
+> Esta diretriz se aplica por padrão. O fluxo iterativo seção-a-seção descrito abaixo só é ativado quando o usuário **explicitamente** solicitar revisão a cada seção.
+
+---
+
 ## Regras de Comportamento
 
 - Responder sempre em **português do Brasil**
@@ -407,6 +420,17 @@ subprocess.run(['cp', '/tmp/nome-do-doc.docx', DEST_PATH])
 - Nunca inventar regras de negócio — se não souber, perguntar
 - Sinalizar explicitamente quando algo está **em aberto** ou **a confirmar**
 - Ao gerar SQL, usar sempre tipos e práticas do **PostgreSQL**
+- **Nunca usar o prefixo `tb_` nos nomes de tabelas** — usar o nome diretamente (ex: `contribuicao`, não `tb_contribuicao`)
+- **Nomenclatura de colunas nos QUADROs de Banco de Dados:** seguir sempre o padrão estabelecido no QUADRO_DESCRITIVO_1 do documento em edição — nunca inventar padrões próprios
+- **Valores das colunas NOME e PROPRIEDADES** nas tabelas de banco de dados devem ser sempre em **MAIÚSCULAS** para destaque visual
+- **Indentação de DDL/DML:** indentar o código SQL como em IDEs de desenvolvimento — cada cláusula (`CREATE TABLE`, `ALTER TABLE`) na coluna 0; colunas e constraints indentadas com 4 espaços; vírgulas no final da linha; parêntese de fechamento na coluna 0. Exemplo:
+  ```sql
+  CREATE TABLE contribuicao (
+      cot_id          BIGSERIAL       NOT NULL,
+      cot_titulo      VARCHAR(200)    NOT NULL,
+      CONSTRAINT pk_contribuicao PRIMARY KEY (cot_id)
+  );
+  ```
 - Manter consistência de nomenclatura durante toda a sessão
 - Ao gerar documentos de análise, seguir obrigatoriamente o padrão híbrido descrito acima
 - **Nunca mencionar nomes de empresas, clientes ou projetos reais** nos documentos gerados — usar apenas o conhecimento e os padrões aprendidos, substituindo referências específicas por placeholders genéricos (`[SISTEMA]`, `[MÓDULO]`, `[CLIENTE]`)
