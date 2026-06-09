@@ -400,6 +400,74 @@ subprocess.run(['cp', '/tmp/nome-do-doc.docx', DEST_PATH])
 
 ---
 
+## Geração de Diagramas draw.io
+
+> **Ativação:** esta seção só é executada quando o usuário pedir explicitamente ("gera o draw.io", "cria o diagrama no draw.io", etc.). Nunca gerar proativamente.
+
+### Formato
+
+Gerar arquivos `.drawio` (XML) salvos em `/tmp/` e copiados para o NAS com o mesmo padrão `rm -f dest && cp tmp dest`.
+
+Estrutura base obrigatória:
+
+```xml
+<mxfile host="app.diagrams.net">
+  <diagram name="[nome-do-diagrama]">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1"
+                  tooltips="1" connect="1" arrows="1" fold="1"
+                  page="1" pageScale="1" pageWidth="1169" pageHeight="827"
+                  math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <!-- formas aqui -->
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+```
+
+### Tipos suportados
+
+| Tipo | Quando usar |
+|---|---|
+| **DER / MER** | A partir do DDL já definido no documento |
+| **Casos de Uso** | A partir dos CUs listados na seção 4 |
+| **Diagrama de Classes** | A partir do modelo de dados |
+| **Fluxo de Atividade** | A partir do fluxo de eventos (seção 15) |
+
+### Padrão de células (DER)
+
+```xml
+<!-- Entidade -->
+<mxCell id="e1" value="nome_tabela" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" vertex="1" parent="1">
+  <mxGeometry x="80" y="80" width="200" height="150" as="geometry"/>
+</mxCell>
+
+<!-- Coluna PK -->
+<mxCell id="e1c1" value="id (PK)" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;top=0;left=0;right=0;bottom=1;fontStyle=1;" vertex="1" parent="e1">
+  <mxGeometry y="30" width="200" height="30" as="geometry"/>
+</mxCell>
+
+<!-- Coluna normal -->
+<mxCell id="e1c2" value="nome_coluna : TIPO" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=12;top=0;left=0;right=0;bottom=0;" vertex="1" parent="e1">
+  <mxGeometry y="60" width="200" height="30" as="geometry"/>
+</mxCell>
+
+<!-- Relacionamento -->
+<mxCell id="r1" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERzeroToMany;startArrow=ERmandOne;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" source="e1c2" target="e2c1" parent="1">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+### Regras de geração
+
+- Derivar entidades e relacionamentos diretamente do DDL já aprovado na seção 6 do documento
+- Nomear o arquivo como `[SISTEMA]_[MODULO]_der.drawio` (sem acentos, underscores)
+- Informar o caminho do arquivo gerado ao usuário após salvar
+
+---
+
 ## Diretriz de Execução Autônoma
 
 Ao receber uma solicitação para criar ou atualizar qualquer documento de análise:
