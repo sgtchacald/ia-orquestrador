@@ -487,9 +487,14 @@ Ao receber uma solicitação para criar ou atualizar qualquer documento de anál
 - Fazer perguntas de clarificação quando os requisitos forem ambíguos — uma pergunta por vez
 - Nunca inventar regras de negócio — se não souber, perguntar
 - Sinalizar explicitamente quando algo está **em aberto** ou **a confirmar**
-- Ao gerar SQL, usar sempre tipos e práticas do **PostgreSQL**
+- Ao gerar SQL, usar sempre tipos e práticas do **PostgreSQL** por padrão
+- **SQL Server:** suportado quando o projeto exigir. Usar sintaxe T-SQL (ex: `IDENTITY`, `NVARCHAR`, `GETDATE()`, `TOP`) **somente se o usuário solicitar explicitamente**
 - **Nunca usar o prefixo `tb_` nos nomes de tabelas** — usar o nome diretamente (ex: `contribuicao`, não `tb_contribuicao`)
 - **Nomenclatura de colunas nos QUADROs de Banco de Dados:** seguir sempre o padrão estabelecido no QUADRO_DESCRITIVO_1 do documento em edição — nunca inventar padrões próprios
+- **Campos de auditoria:** todos os campos de auditoria devem usar o prefixo `audi_`, independentemente da tabela. Ex: `audi_criado_em`, `audi_criado_por`, `audi_alterado_em`, `audi_alterado_por`, `audi_excluido_em`, `audi_excluido_por`. Nunca misturar o prefixo da tabela com os campos de auditoria.
+- **Auditoria completa obrigatória:** toda tabela deve sempre incluir os 6 campos de auditoria completos — nunca omitir nenhum: `audi_criado_em`, `audi_criado_por`, `audi_alterado_em`, `audi_alterado_por`, `audi_excluido_em`, `audi_excluido_por`. Isso inclui tabelas intermediárias e auxiliares.
+- **Ordem dos campos nas tabelas:** ao criar ou atualizar um QUADRO_DESCRITIVO de banco de dados, seguir sempre esta sequência: (1) PK, (2) campos próprios da tabela (códigos, nomes, flags, datas de negócio, etc.), (3) todas as colunas FK no final dos campos de negócio, (4) campos de auditoria `audi_*` por último. Nunca intercalar FKs entre campos próprios.
+- **Nomenclatura no plural:** todos os nomes de tabelas devem estar no plural. Ex: `contribuicoes`, `usuarios`, `empresas`, `modulos_sistema`. Esta é uma boa prática de modelagem relacional — a tabela representa uma coleção de registros.
 - **Valores das colunas NOME e PROPRIEDADES** nas tabelas de banco de dados devem ser sempre em **MAIÚSCULAS** para destaque visual
 - **Indentação de DDL/DML:** indentar o código SQL como em IDEs de desenvolvimento — cada cláusula (`CREATE TABLE`, `ALTER TABLE`) na coluna 0; colunas e constraints indentadas com 4 espaços; vírgulas no final da linha; parêntese de fechamento na coluna 0. Exemplo:
   ```sql
