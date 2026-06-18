@@ -258,11 +258,13 @@ Ao construir um documento de análise **seção por seção**, seguir este proto
 ### Ciclo por seção
 
 1. **Gerar a seção** — escrever o conteúdo da seção atual via python-docx, salvar em `/tmp/` e copiar para o NAS. **Nunca abrir o LibreOffice** — abrir o LibreOffice cria um arquivo de lock (`.~lock.filename#`) que impede o usuário de editar.
-2. **Avisar que está pronto** — informar ao usuário que a seção foi salva e está disponível para revisão no caminho do NAS. Exemplo: _"Seção X salva. Abra o documento, revise, edite o que desejar e me avise quando terminar."_
-3. **Aguardar sinalização** — esperar o usuário sinalizar que terminou a revisão (ex: "ok", "pode continuar", "pronto").
-4. **Ler e analisar o documento** — ao receber a sinalização, **sempre** copiar o arquivo do NAS para `/tmp/`, abrir com python-docx e executar a **etapa de revisão obrigatória** (ver abaixo). **Nunca pular esta etapa.**
-5. **Adicionar a próxima seção** — somente após a revisão, inserir a nova seção sem modificar o restante.
-6. **Repetir** até o documento estar completo.
+2. **Atualizar o espelho `.md`** — imediatamente após salvar o `.docx` no NAS, atualizar o arquivo `.md` correspondente (mesmo diretório, mesmo nome base com extensão `.md`) para refletir o conteúdo adicionado. **Esta etapa é obrigatória sempre que o `.docx` for modificado.**
+3. **Avisar que está pronto** — informar ao usuário que a seção foi salva e está disponível para revisão no caminho do NAS. Exemplo: _"Seção X salva. Abra o documento, revise, edite o que desejar e me avise quando terminar."_
+4. **Aguardar sinalização** — esperar o usuário sinalizar que terminou a revisão (ex: "ok", "pode continuar", "pronto").
+5. **Ler e analisar o documento** — ao receber a sinalização, **sempre** copiar o arquivo do NAS para `/tmp/`, abrir com python-docx e executar a **etapa de revisão obrigatória** (ver abaixo). **Nunca pular esta etapa.**
+6. **Sincronizar o espelho `.md` com as edições do usuário** — após identificar e reportar as alterações feitas pelo usuário, atualizar o `.md` para refletir o estado atual do documento. Isso garante que o contexto de sessões futuras esteja sempre atualizado.
+7. **Adicionar a próxima seção** — somente após a revisão e sincronização, inserir a nova seção sem modificar o restante.
+8. **Repetir** até o documento estar completo.
 
 ### Etapa de revisão obrigatória (ao receber sinalização do usuário)
 
@@ -504,6 +506,41 @@ Ao receber uma solicitação para criar ou atualizar qualquer documento de anál
       CONSTRAINT pk_contribuicao PRIMARY KEY (cot_id)
   );
   ```
+- **Sincronização obrigatória do espelho `.md`:** toda vez que o `.docx` for modificado — seja pelo agente ou pelo usuário — o arquivo `.md` correspondente deve ser atualizado imediatamente para refletir o estado atual do documento. O `.md` é a fonte de contexto para sessões futuras e nunca deve ficar desatualizado em relação ao `.docx`.
+- **Terminologia de camadas — proibido usar "backend" e "frontend":** em documentos de análise, as responsabilidades de cada camada são documentadas exclusivamente como **Regra de Tela (RT)** — comportamentos de interface, validações client-side, exibição/ocultação de elementos, feedbacks visuais — e **Regra de Negócio (RN)** — lógica de domínio, validações server-side, persistência, regras de segurança. Nunca escrever "o backend deve..." ou "o frontend deve..." em nenhuma seção do documento.
+- **Ordenação de chamadas em RN e RT:** quando uma regra (RN ou RT) depender da execução de outras regras antes da lógica principal, listar essas chamadas em ordem crescente de execução — tanto na tabela quanto no texto descritivo da regra. Exemplo: se RN05 executa C01, C02 e depois persiste, a descrição deve refletir essa ordem: "1. Executar C01. 2. Executar C02. 3. Persistir...". O mesmo vale para referências a endpoints, consultas e mensagens.
+- **Padrão de escrita:** seguir sempre o estilo de escrita do usuário — estrutura das frases, nível de formalidade, forma de referenciar outros itens (ex: "executar RN01", "chamar EDP02", "exibir MSG03"). Corrigir silenciosamente erros de concordância, ortografia ou gramática, sem comentar a correção.
+- **Clareza e objetividade nas regras:** regras de negócio e de tela devem ser completas, mas diretas. Evitar textos longos e redundantes que dificultem a leitura do desenvolvedor. Cada frase deve ter um propósito claro — se uma informação já está documentada em outro item (endpoint, consulta, mensagem), referenciar pelo código em vez de repetir o conteúdo.
 - Manter consistência de nomenclatura durante toda a sessão
 - Ao gerar documentos de análise, seguir obrigatoriamente o padrão híbrido descrito acima
 - **Nunca mencionar nomes de empresas, clientes ou projetos reais** nos documentos gerados — usar apenas o conhecimento e os padrões aprendidos, substituindo referências específicas por placeholders genéricos (`[SISTEMA]`, `[MÓDULO]`, `[CLIENTE]`)
+
+---
+
+## Aprendizados de Campo — Projeto 7GRC
+
+Diretrizes derivadas da construção real de documentos no projeto. Aplicar sempre que o projeto ativo for o 7GRC.
+
+### Referências visuais e padrões de interface
+
+- **Não ler imagens para extrair cores ou layout** — imagens PNG do sistema (ex: `tela-exemplo-grid.png`, `tela-exemplo-modal.png`) estão na pasta do documento mas são imprecisas para extração de cores. Usar sempre o arquivo `7grc-padroes-frontend.md` em `contexto-projeto/` que contém as cores exatas em hex, estilos de componentes PrimeNG/Nebular e guia de draw.io.
+- **Antes de gerar qualquer draw.io ou descrever layout**, ler `7grc-padroes-frontend.md` para garantir que cores, tipografia e posicionamento de componentes estejam corretos.
+- **Suggestion Box** não é um dropdown estático — é um campo de texto com filtragem em tempo real consumindo um endpoint. Nunca documentar como `<select>` ou combobox estático.
+
+### Perfis de acesso
+
+- **Usar sempre os IDs de perfil** (PERF01, PERF02, etc.) em vez dos nomes por extenso em todo o documento — endpoints, RTs, RNs, casos de uso, observações. A única exceção é a tabela da seção 14 (Perfis), que é a definição canônica dos nomes.
+- Mapeamento padrão 7GRC: `PERF01 = MASTER`, `PERF02 = BACKOFFICE`, `PERF03 = ADMINISTRADOR`, `PERF04 = AUDITOR`, `PERF05 = DPO`, `PERF06 = FUNCIONARIO`.
+
+### Prefixos de colunas e campos booleanos
+
+- Cada tabela tem um prefixo de 4 letras para suas colunas (ex: `cont_` para `contribuicoes`, `conc_` para `contribuicoes_comentarios`). Nunca misturar prefixos entre tabelas — especialmente em consultas SQL e RNs que referenciam campos por nome.
+- Campos booleanos usam prefixo `ind_` — nunca `fl_`. Ex: `cont_ind_anonimo`, `conc_ind_interno`, `conc_ind_lido`.
+- Campos de data/hora de eventos de negócio seguem o padrão `{prefixo}_{evento}_dt_{complemento}`. Ex: `cont_chat_dt_encerramento`, `conc_ind_lido_dt_leitura`.
+
+### Consistência interna do documento
+
+- **Ao finalizar o documento**, sempre revisar os Requisitos Funcionais (seção 3.1) e os Casos de Uso (seção 4) para garantir que cubram tudo que foi documentado nas seções de RTs, RNs, EDPs e MSGs. Funcionalidades documentadas nas regras sem RF correspondente são um erro comum.
+- **Referências cruzadas** — o documento é uma rede: RT chama EDP, EDP chama RN, RN chama C e exibe MSG. Nunca repetir o conteúdo de um item em outro — apenas referenciar pelo código. O desenvolvedor segue a referência.
+- **DDLs de ALTER TABLE** — quando um QUADRO_DESCRITIVO declarar N campos novos em uma tabela existente, o DDL correspondente deve ter N instruções `ALTER TABLE ADD COLUMN`. Verificar sempre que o número de campos no QUADRO bate com o número de ALTERs no DDL.
+- **Consultas SQL** — sempre verificar que aliases, nomes de colunas e FKs nas queries correspondem exatamente aos campos definidos nos QUADROs. Alias definido no FROM deve ser usado consistentemente no WHERE, SELECT e JOIN.
