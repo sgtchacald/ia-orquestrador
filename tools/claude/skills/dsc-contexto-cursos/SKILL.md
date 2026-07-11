@@ -7,7 +7,7 @@ description: Use when answering questions about Spring MVC, Thymeleaf, Spring Se
 
 ## Overview
 
-Antes de responder perguntas sobre padrões Spring MVC/Thymeleaf no projeto do usuário, busca exemplos reais nos projetos de curso em `/mnt/04D660D763C8D42B/DEV_HOME/DSC_HOME/contexto-i.a/`.
+Antes de responder perguntas sobre padrões Spring MVC/Thymeleaf no projeto do usuário, busca exemplos reais nos projetos de curso em `/mnt/backup_hd/dev_home/dsc_home/contexto-i.a/`.
 
 ## Projetos Disponíveis
 
