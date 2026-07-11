@@ -40,4 +40,20 @@ link_safe "$REPO_DIR/tools/claude/CLAUDE.md"     "$CLAUDE_DIR/CLAUDE.md"
 # Adicionar blocos aqui conforme novas ferramentas forem incorporadas
 
 echo ""
+echo "[Claude] Instalando plugins..."
+if command -v claude >/dev/null 2>&1; then
+  claude plugin install frontend-design@claude-plugins-official
+  claude plugin install superpowers@claude-plugins-official
+  claude plugin install context7@claude-plugins-official
+  claude plugin install code-review@claude-plugins-official
+else
+  echo "  AVISO: comando 'claude' nao encontrado no PATH (comum no app Desktop, que nao"
+  echo "  expoe um CLI de sistema). Abra o Claude e rode dentro do chat:"
+  echo "    /plugin install frontend-design@claude-plugins-official"
+  echo "    /plugin install superpowers@claude-plugins-official"
+  echo "    /plugin install context7@claude-plugins-official"
+  echo "    /plugin install code-review@claude-plugins-official"
+fi
+
+echo ""
 echo "Instalacao concluida. Reinicie o Claude para aplicar as mudancas."
