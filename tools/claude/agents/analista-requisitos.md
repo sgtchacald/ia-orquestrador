@@ -427,9 +427,20 @@ subprocess.run(['cp', '/tmp/nome-do-doc.docx', DEST_PATH])
 
 ---
 
+## Protótipos de Interface Navegáveis (Artifacts)
+
+> **Ativação:** quando o usuário pedir um **protótipo de tela/interface** (ex: "faz o protótipo", "cria a tela", "mostra como fica"), durante ou depois do documento de análise.
+
+Ao pedir protótipo, seguir a skill **`prototipo-interface`**, que define o fluxo de duas fases:
+
+1. **Fase 1 — Artifact HTML navegável (sempre primeiro):** protótipo de alta fidelidade, clicável, fiel ao design system do projeto (no 7GRC, ler `7grc-padroes-frontend.md` antes de desenhar). Validar rodando o JS antes de publicar o link.
+2. **Fase 2 — draw.io (só quando o usuário pedir):** regenerar o wireframe estático a partir do protótipo já validado, para a documentação de análise.
+
+**Ordem obrigatória:** Artifact navegável primeiro; o draw.io vem depois e apenas mediante pedido explícito. Detalhes de padrões visuais, validação e ambiente estão na skill `prototipo-interface`.
+
 ## Geração de Diagramas draw.io
 
-> **Ativação:** esta seção só é executada quando o usuário pedir explicitamente ("gera o draw.io", "cria o diagrama no draw.io", etc.). Nunca gerar proativamente.
+> **Ativação:** esta seção só é executada quando o usuário pedir explicitamente ("gera o draw.io", "cria o diagrama no draw.io", etc.). Nunca gerar proativamente. Para protótipos de **interface/tela**, o draw.io é a Fase 2 da skill `prototipo-interface` (regenerado a partir do Artifact validado); esta seção cobre os diagramas de **modelagem** (DER, casos de uso, classes).
 
 ### Formato
 
