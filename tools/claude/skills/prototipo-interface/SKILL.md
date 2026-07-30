@@ -47,7 +47,7 @@ FASE 2 — draw.io  (documentação)
 
 ## Ambiente (Windows do usuário)
 
-`python`/`py` no PATH são só o atalho da Store (falham). Python real (3.13) fica no pgAdmin: `...\pgAdmin 4\python\python.exe` — usar caminho completo. `node` não instalado. Ver `[[reference_windows_runtimes]]`.
+Python 3.13 real instalado em `C:\Users\sgtch\AppData\Local\Programs\Python\Python313\python.exe` (com `python-docx`). Se `python`/`py` do PATH falharem (atalho da Microsoft Store), use esse caminho completo. `node` não instalado. Ver `[[reference_windows_runtimes]]`.
 
 ## Erros comuns
 
