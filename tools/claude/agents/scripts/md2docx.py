@@ -67,7 +67,16 @@ def new_table(doc, rows, cols):
     t._tbl.tblPr.append(layout)
     return t
 
+USABLE_CM = 18.0   # A4 (21 cm) - margens laterais de 1,5 cm
+
 def set_widths(t, cms):
+    """Aplica larguras SEMPRE normalizadas para caber na área útil.
+
+    Sem isso as tabelas estouram a margem e a última coluna sai cortada à
+    direita — foi o que aconteceu no documento 01.
+    """
+    total = float(sum(cms)) or 1.0
+    cms = [w * USABLE_CM / total for w in cms]
     for row in t.rows:
         cells = row.cells
         for i, w in enumerate(cms):
@@ -236,8 +245,8 @@ def std_table(doc, rows, widths=None):
         for j in range(cols):
             val = row[j] if j < len(row) else ''
             style_cell(t.rows[i+1].cells[j], val, bg=bg)
-    if widths:
-        set_widths(t, widths)
+    # sem largura definida -> distribui a área útil igualmente (evita estouro)
+    set_widths(t, widths if widths else [1.0] * cols)
     return t
 
 def endpoints_table(doc, rows):
@@ -263,7 +272,24 @@ def endpoints_table(doc, rows):
     set_widths(t, [1.6, 1.3, 3.2, 7.4, 2.0])
     return t
 
+_QUADRO_COUNT = [0]
+
+def quebra_pagina(doc):
+    """Separa visualmente um QUADRO_DESCRITIVO do anterior."""
+    p = doc.add_paragraph(style='Normal')
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    r = p.add_run()
+    br = OxmlElement('w:br')
+    br.set(qn('w:type'), 'page')
+    r._r.append(br)
+
 def banco_quadro(doc, rows, ddl_code):
+    # a partir do segundo quadro, começa em página nova (pedido do usuário:
+    # "separe os quadros descritivos")
+    _QUADRO_COUNT[0] += 1
+    if _QUADRO_COUNT[0] > 1:
+        quebra_pagina(doc)
     # locate ALTERAÇÃO row
     idx_alter = None
     for i, r in enumerate(rows):
@@ -497,11 +523,17 @@ def main():
     toks = tokenize(md)
     doc = Document()
     # margins
+    # Página A4 explícita: o padrão do python-docx é Letter (21,59 cm), o que
+    # dava área útil de 16,6 cm com margens de 2,5 cm — as tabelas de 17 cm
+    # estouravam e a última coluna saía cortada à direita.
+    # A4 (21 cm) com margens de 1,5 cm => área útil de exatamente USABLE_CM.
     for sec in doc.sections:
-        sec.top_margin = Cm(2)
-        sec.bottom_margin = Cm(2)
-        sec.left_margin = Cm(2.5)
-        sec.right_margin = Cm(2.5)
+        sec.page_width = Cm(21.0)
+        sec.page_height = Cm(29.7)
+        sec.top_margin = Cm(1.8)
+        sec.bottom_margin = Cm(1.8)
+        sec.left_margin = Cm(1.5)
+        sec.right_margin = Cm(1.5)
     # base style font
     normal = doc.styles['Normal']
     normal.font.name = FONT
