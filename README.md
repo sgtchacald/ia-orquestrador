@@ -1,6 +1,6 @@
 # ia-orquestrador
 
-Repositório central de configurações de IA. Funciona como fonte da verdade para skills, agentes e configurações — basta clonar e rodar o instalador.
+Repositório central de configurações de IA. Funciona como fonte da verdade para skills, agentes e configurações — basta clonar e rodar o instalador. Suporta **Claude Code** e **Gemini / Google Antigravity**.
 
 ## Como instalar
 
@@ -29,14 +29,19 @@ ia-orquestrador/
 │   ├── prompts/             # prompts reaproveitáveis
 │   └── knowledge/           # contexto sobre projetos e preferências
 ├── tools/
-│   └── claude/              # adaptador Claude Code
-│       ├── CLAUDE.md        # instruções globais
-│       ├── skills/          # skills customizadas
-│       ├── agents/          # subagentes (futuro)
-│       ├── commands/        # comandos customizados (futuro)
-│       └── settings.json    # plugins habilitados e tema
-├── install.sh               # instalador Linux/macOS
-├── install.ps1              # instalador Windows
+│   ├── claude/              # adaptador Claude Code
+│   │   ├── CLAUDE.md        # instruções globais
+│   │   ├── skills/          # skills customizadas
+│   │   ├── agents/          # subagentes
+│   │   ├── commands/        # comandos customizados
+│   │   └── settings.json    # plugins habilitados e tema
+│   └── gemini/              # adaptador Gemini / Google Antigravity
+│       ├── GEMINI.md        # instruções globais Antigravity
+│       ├── skills/          # skills adaptadas para Antigravity
+│       ├── agents/          # subagentes
+│       └── commands/        # comandos customizados
+├── install.sh               # instalador Linux/macOS (Claude + Gemini/Antigravity)
+├── install.ps1              # instalador Windows (Claude + Gemini/Antigravity)
 └── .gitignore
 ```
 
@@ -49,7 +54,7 @@ ia-orquestrador/
 | `context7` | Documentação atualizada de bibliotecas via MCP |
 | `code-review` | Revisão de código e PRs |
 
-> Os plugins precisam ser instalados manualmente via `/install` dentro do Claude Code. O `settings.json` apenas os habilita.
+> Os plugins do Claude precisam ser instalados manualmente via `/install` dentro do Claude Code. O `settings.json` apenas os habilita.
 
 ## Adicionar nova IA
 
@@ -61,4 +66,4 @@ ia-orquestrador/
 
 - API keys, tokens, credenciais
 - Histórico de conversas, cache, sessões
-- Arquivos internos gerados pelo Claude
+- Arquivos internos gerados pelo Claude ou Antigravity

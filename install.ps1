@@ -1,13 +1,14 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
     ia-orquestrador - instalador Windows (PowerShell)
     Equivalente ao install.sh (Linux/macOS)
 #>
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 $RepoDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ClaudeDir = Join-Path $HOME ".claude"
+$GeminiDir = Join-Path $HOME ".gemini\antigravity"
 
 Write-Host "=== ia-orquestrador - instalador Windows ===" -ForegroundColor Cyan
 Write-Host ""
@@ -17,7 +18,8 @@ Write-Host ""
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Host "AVISO: Voce nao esta rodando como Administrador." -ForegroundColor Yellow
-    Write-Host "Criar symlinks pode falhar, a menos que o 'Developer Mode' esteja habilitado" -ForegroundColor Yellow
+    Write-Host "Criar symlinks pode falhar, a menos que o 'Developer Mode' esteja habilitado." -ForegroundColor Yellow
+    Write-Host "Se o symlink falhar, o instalador fara copia automatica dos arquivos." -ForegroundColor Yellow
     Write-Host "(Configuracoes > Privacidade e seguranca > Para desenvolvedores)." -ForegroundColor Yellow
     Write-Host ""
 }
@@ -26,8 +28,12 @@ if (-not (Test-Path $ClaudeDir)) {
     New-Item -ItemType Directory -Path $ClaudeDir -Force | Out-Null
 }
 
+if (-not (Test-Path $GeminiDir)) {
+    New-Item -ItemType Directory -Path $GeminiDir -Force | Out-Null
+}
+
 # Cria symlink de forma segura.
-# Se ja for symlink: substitui. Se for arquivo/diretorio real: faz backup.
+# Se ja for symlink: substitui. Se falhar por falta de permissao: faz copia (fallback).
 function Link-Safe {
     param(
         [string]$Src,
@@ -41,19 +47,21 @@ function Link-Safe {
         }
         else {
             $backup = "$Dst.bak"
+            if (Test-Path $backup) { Remove-Item $backup -Force -Recurse }
             Move-Item -Path $Dst -Destination $backup -Force
             Write-Host "  Backup criado: $backup"
         }
     }
 
-    $target = Get-Item $Src -Force
-    if ($target.PSIsContainer) {
-        New-Item -ItemType SymbolicLink -Path $Dst -Target $Src | Out-Null
+    try {
+        New-Item -ItemType SymbolicLink -Path $Dst -Target $Src -ErrorAction Stop | Out-Null
+        Write-Host "  Vinculado (symlink): $Dst -> $Src"
     }
-    else {
-        New-Item -ItemType SymbolicLink -Path $Dst -Target $Src | Out-Null
+    catch {
+        Write-Host "  Symlink nao permitido. Realizando copia (fallback)..." -ForegroundColor Yellow
+        Copy-Item -Path $Src -Destination $Dst -Recurse -Force
+        Write-Host "  Copiado: $Dst <- $Src"
     }
-    Write-Host "  Vinculado: $Dst -> $Src"
 }
 
 Write-Host "[Claude] Vinculando diretorios..."
@@ -65,16 +73,18 @@ Write-Host "[Claude] Vinculando arquivos..."
 Link-Safe -Src (Join-Path $RepoDir "tools\claude\settings.json") -Dst (Join-Path $ClaudeDir "settings.json")
 Link-Safe -Src (Join-Path $RepoDir "tools\claude\CLAUDE.md")     -Dst (Join-Path $ClaudeDir "CLAUDE.md")
 
-# Futuros adaptadores: tools\gemini\, tools\codex\ etc.
-# Adicionar blocos aqui conforme novas ferramentas forem incorporadas
+Write-Host ""
+Write-Host "[Gemini / Antigravity] Vinculando diretorios..."
+Link-Safe -Src (Join-Path $RepoDir "tools\gemini\skills")   -Dst (Join-Path $GeminiDir "skills")
+Link-Safe -Src (Join-Path $RepoDir "tools\gemini\agents")   -Dst (Join-Path $GeminiDir "agents")
+Link-Safe -Src (Join-Path $RepoDir "tools\gemini\commands") -Dst (Join-Path $GeminiDir "commands")
+
+Write-Host "[Gemini / Antigravity] Vinculando arquivos..."
+Link-Safe -Src (Join-Path $RepoDir "tools\gemini\GEMINI.md") -Dst (Join-Path $GeminiDir "GEMINI.md")
 
 Write-Host ""
 Write-Host "[Claude] Verificando CLI..."
 
-# O instalador nativo do Claude Code (irm https://claude.ai/install.ps1 | iex)
-# coloca o binario em %USERPROFILE%\.local\bin mas nao garante que esse
-# diretorio esteja no PATH da sessao atual (nem sempre persiste no PATH
-# de usuario). Corrige os dois casos aqui para nao depender de reabrir o terminal.
 $claudeLocalBin = Join-Path $HOME ".local\bin"
 if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
     if (Test-Path (Join-Path $claudeLocalBin "claude.exe")) {
@@ -107,4 +117,4 @@ else {
 }
 
 Write-Host ""
-Write-Host "Instalacao concluida. Reinicie o Claude para aplicar as mudancas." -ForegroundColor Green
+Write-Host "Instalacao concluida. Reinicie o Claude e/ou o Antigravity para aplicar as mudancas." -ForegroundColor Green
