@@ -1,0 +1,12 @@
+{
+  "//": "Permissões liberadas a pedido do usuário (2026-07-30) para o trabalho dos documentos de análise do Módulo de I.A do PJ7. As entradas com python.exe concedem execução de código Python arbitrário — remover quando este trabalho terminar.",
+  "permissions": {
+    "allow": [
+      "Bash(\"C:/Users/sgtch/AppData/Local/Programs/Python/Python313/python.exe\" *)",
+      "Bash(C:/Users/sgtch/AppData/Local/Programs/Python/Python313/python.exe *)",
+      "Bash(cd \"C:/Users/sgtch/OneDrive/Pessoal/trabalho/PJ7/*)",
+      "Bash(cd \"C:/Users/sgtch/OneDrive/Pessoal/Notas/1 - projetos/pj7*)",
+      "Bash(PYTHONIOENCODING=utf-8 *)"
+    ]
+  }
+}
