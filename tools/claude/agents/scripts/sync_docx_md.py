@@ -74,6 +74,40 @@ def count_images(path):
     return len(Document(path).element.body.findall('.//' + qn('w:drawing')))
 
 
+def extrair_imagens(docx_path, md_path):
+    """Extrai as imagens do .docx para <pasta do md>/images/.
+
+    Informa, para cada uma, o último texto que a precede — é o que permite
+    referenciá-la na seção certa do .md.
+    """
+    doc = Document(docx_path)
+    destino = os.path.join(os.path.dirname(md_path), 'images')
+    os.makedirs(destino, exist_ok=True)
+    base = os.path.splitext(os.path.basename(md_path))[0]
+    base = re.sub(r'^documento-analise-', '', base)
+    ultimo, achadas, i = '(topo)', [], 0
+    for child in doc.element.body.iterchildren():
+        if child.tag != qn('w:p'):
+            continue
+        for blip in child.findall('.//' + qn('a:blip')):
+            rid = blip.get(qn('r:embed'))
+            part = doc.part.related_parts[rid]
+            ext = os.path.splitext(str(part.partname))[1] or '.png'
+            i += 1
+            nome = '%s-img%02d%s' % (base, i, ext)
+            with open(os.path.join(destino, nome), 'wb') as f:
+                f.write(part.blob)
+            achadas.append((nome, ultimo))
+        t = ''.join(x.text or '' for x in child.iter(qn('w:t'))).strip()
+        if t:
+            ultimo = t
+    print('IMAGENS extraidas para %s:' % destino)
+    for nome, ctx in achadas:
+        print('   %s   <- depois de: %s' % (nome, ctx[:70]))
+    print('Referencie no .md como: ![descricao](images/<arquivo>)')
+    return achadas
+
+
 # ---------------- normalização p/ casar com o .md ----------------
 def strip_md(s):
     s = re.sub(r'<a id="[^"]*"></a>', '', s)
@@ -103,6 +137,11 @@ def main():
         if not os.path.exists(p):
             print('ERRO: arquivo nao encontrado:', p)
             return 1
+
+    if '--imagens' in sys.argv:
+        extrair_imagens(docx_path, md_path)
+        if '--apply' not in sys.argv:
+            return 0
 
     # 1) .docx esperado a partir do .md atual
     tmp = os.path.join(tempfile.gettempdir(), '_esperado_sync.docx')
